@@ -4,9 +4,21 @@ tasks:
   pull:
     cmds:
       - python code/01_pull_data.py
+
   clean:
     deps: [pull]
     cmds:
       - python code/02_clean.py
-  all:
+
+  descriptives:
     deps: [clean]
+    cmds:
+      - python code/03_descriptives.py
+
+  regression:
+    deps: [descriptives]
+    cmds:
+      - python code/04_regression.py
+
+  all:
+    deps: [regression]

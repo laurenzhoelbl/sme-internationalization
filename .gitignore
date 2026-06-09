@@ -9,3 +9,9 @@ __pycache__/
 data/processed/
 .ipynb_checkpoints/
 *.parquet
+
+# Generated outputs
+output/
+
+# Live demo notebooks
+live_demo_*.ipynb
