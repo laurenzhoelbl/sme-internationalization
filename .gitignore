@@ -15,3 +15,6 @@ output/
 
 # Live demo notebooks
 live_demo_*.ipynb
+
+# Quarto PDF output
+research_note.pdf

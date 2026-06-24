@@ -1,0 +1,141 @@
+---
+title: "Intangible Assets and Operational Efficiency in European SMEs"
+author:
+  - "Laurenz Hölbl | ExInt II | WU Vienna | SS 2026"
+  - "https://github.com/laurenzhoelbl/sme-internationalization"
+date: "June 2026"
+bibliography: references/library.bib
+csl: references/apa.csl
+format:
+  pdf:
+    toc: false
+    number-sections: true
+    geometry: margin=2.5cm
+    fontsize: 11pt
+    linestretch: 1.3
+execute:
+  eval: true
+  echo: false
+  warning: false
+  message: false
+---
+```{python}
+#| label: setup
+import pandas as pd
+import numpy as np
+
+summary = pd.read_csv("output/tables/summary_statistics.csv", index_col=0)
+results = pd.read_csv("output/tables/regression_results.csv", index_col=0)
+panel = pd.read_parquet("data/processed/panel_with_vars.parquet")
+
+n_obs = int(panel.shape[0])
+n_firms = int(panel["gvkey"].nunique())
+year_min = int(panel["fyear"].min())
+year_max = int(panel["fyear"].max())
+```
+# Introduction
+
+Intangible assets have become an increasingly important part of firm value creation. Rather than relying only on physical assets, firms increasingly build competitive advantage through knowledge, organizational capabilities, innovation-related resources, and other non-physical assets. This is especially relevant from a resource-based and knowledge-based view of the firm, which argues that firm-specific resources and knowledge can create performance differences when they are valuable, difficult to imitate, and effectively used within the organization [@barneyFirmResourcesSustained1991; @grantKnowledgebasedTheoryFirm1996].
+
+However, the role of intangible assets in small and medium-sized enterprises remains less straightforward. While intangible assets may improve productivity, innovation capacity, and long-term competitiveness, they can also be difficult to measure and may not immediately translate into higher current operating efficiency. Prior empirical work has examined intangible assets and firm performance, but the relationship may depend on firm characteristics such as size, because larger SMEs may have more resources, managerial capacity, and organizational structures to benefit from intangible assets [@denicolaiImpactIntangiblesFirm2015; @petersIntangibleCapitalInvestmentq2017; @dongRoleIntangibleAssets2025].
+
+This research note investigates this relationship using a panel of European SMEs. It focuses on intangible asset intensity as the main explanatory variable and asset turnover as a measure of operational efficiency. In addition, it examines whether firm size moderates the relationship between intangible asset intensity and operational efficiency. By combining firm-level panel data with fixed effects regression models, the analysis contributes to a more reproducible understanding of whether intangible assets are associated with efficiency differences among European SMEs.
+
+> **Research question:** How does intangible asset intensity affect operational efficiency among European SMEs, and does firm size moderate this relationship?
+
+# Theory and Hypotheses
+
+The theoretical starting point of this research note is the resource-based view of the firm. This perspective argues that firms can achieve performance differences when they control resources that are valuable, rare, difficult to imitate, and organizationally embedded [@barneyFirmResourcesSustained1991]. Intangible assets fit this argument because they often represent firm-specific knowledge, organizational routines, technological capabilities, brand-related resources, or innovation-related assets. A knowledge-based view further suggests that knowledge is not only one resource among many, but one of the central foundations of firm capability and value creation [@grantKnowledgebasedTheoryFirm1996]. From this perspective, intangible assets should help firms use their resources more effectively and convert assets into sales more efficiently.
+
+For SMEs, this mechanism is especially relevant because they often operate with fewer physical and financial resources than larger firms. Intangible assets may therefore help SMEs compensate for resource limitations by strengthening innovation, customer relationships, internal processes, or technological capabilities. Prior empirical research has linked intangible assets to firm performance and productivity-related outcomes, although the relationship can depend on context and measurement [@denicolaiImpactIntangiblesFirm2015; @petersIntangibleCapitalInvestmentq2017; @antonImpactIntangibleAssets2026]. In this research note, operational efficiency is measured through asset turnover, meaning the extent to which firms generate sales from their asset base. If intangible assets improve the productive use of resources, higher intangible asset intensity should be associated with higher operational efficiency.
+
+> **H1:** Intangible asset intensity is positively associated with operational efficiency among European SMEs.
+> *(Test: expected positive coefficient on intangible asset intensity.)*
+
+The relationship between intangible assets and operational efficiency may also depend on firm size. Larger SMEs may be better positioned to benefit from intangible assets because they often have more developed organizational structures, managerial capacity, financial resources, and complementary capabilities. Intangible assets alone may not automatically improve efficiency; firms also need the ability to absorb, coordinate, and apply these assets in business processes. This means that size can strengthen the conversion of intangible resources into operational outcomes. Prior research suggests that intangible assets and knowledge-related investments may have different effects depending on firm characteristics, organizational context, and the ability to exploit intangible resources effectively [@denicolaiImpactIntangiblesFirm2015; @dongRoleIntangibleAssets2025; @grantKnowledgebasedTheoryFirm1996].
+
+In smaller SMEs, intangible assets may remain underutilized because firms lack the complementary resources needed to fully transform them into sales-generating efficiency. In larger SMEs, by contrast, intangible assets may be more systematically embedded in processes, products, and market activities. Therefore, firm size is expected to positively moderate the relationship between intangible asset intensity and operational efficiency.
+
+> **H2:** Firm size positively moderates the relationship between intangible asset intensity and operational efficiency, such that the relationship becomes stronger for larger SMEs.
+> *(Test: expected positive coefficient on the interaction between intangible asset intensity and firm size.)*
+
+# Data and Method
+
+The analysis uses firm-level panel data for European small and medium-sized enterprises. The sample comprises `{python} f"{n_obs:,}"` firm-years from `{python} f"{n_firms:,}"` unique firms over the period `{python} year_min` to `{python} year_max`. The data were cleaned using several filters to ensure that the analysis focuses on economically meaningful observations. Firms with very small or invalid asset values, zero or negative sales, and non-positive equity values were excluded. In addition, firms with total assets below 1 in the reported data units were removed because very small asset bases can create unstable ratio values. The SME sample is defined using an employee and asset-based filter, following the logic of the European SME definition [@CommissionRecommendation62003].
+
+The dependent variable is operational efficiency, measured as asset turnover. Asset turnover captures how efficiently a firm generates sales from its asset base. The main independent variable is intangible asset intensity, measured as intangible assets divided by total assets. Firm size is measured as the natural logarithm of total assets and is used both as a control variable and as a moderator. The interaction term between intangible asset intensity and firm size tests whether the relationship between intangible assets and operational efficiency changes with firm size. Additional controls include leverage, capital expenditure intensity, and the cash ratio.
+
+| Variable                               | Field(s)      | Formula                   | Role                      |
+| -------------------------------------- | ------------- | ------------------------- | ------------------------- |
+| Asset turnover                         | `sale`, `at`  | `sale / at`               | Dependent variable        |
+| Intangible asset intensity             | `intan`, `at` | `intan / at`              | Main independent variable |
+| Firm size                              | `at`          | `log(at)`                 | Moderator and control     |
+| Intangible asset intensity × firm size | constructed   | `intan_intensity * ln_at` | Interaction term          |
+| Leverage                               | `dltt`, `at`  | `dltt / at`               | Control                   |
+| CAPX intensity                         | `capx`, `at`  | `capx / at`               | Control                   |
+| Cash ratio                             | `che`, `at`   | `che / at`                | Control                   |
+
+The empirical model estimates the relationship between intangible asset intensity and operational efficiency using panel regression models. The main specification can be written as:
+
+$$
+\begin{aligned}
+AssetTurnover_{it} =\;& \beta_0 
++ \beta_1 IntangibleIntensity_{it} 
++ \beta_2 FirmSize_{it} \\
+&+ \beta_3 (IntangibleIntensity_{it} \times FirmSize_{it}) \\
+&+ \gamma Controls_{it} 
++ \alpha_i + \lambda_t + \varepsilon_{it}
+\end{aligned}
+$$
+
+where \(i\) indexes firms and \(t\) indexes years. Firm fixed effects ($\alpha_i$) control for time-invariant differences between firms, while year fixed effects ($\lambda_t$) control for common time shocks. Panel fixed effects are therefore used to reduce omitted variable bias in the estimation [@wooldridgeEconometricAnalysisCross2010].
+
+Standard errors are clustered at the firm level to account for within-firm correlation over time. This is necessary because repeated observations of the same firm are unlikely to be statistically independent [@petersenEstimatingStandardErrors2009]. To reduce the influence of extreme ratio values, continuous ratio variables are winsorized at the 1st and 99th percentiles. This approach is common in accounting and finance research, although it also requires careful interpretation because the treatment of influential observations can affect coefficient estimates and inference [@leoneInfluentialObservationsInference2019].
+
+# Results
+
+The descriptive statistics show that the average asset turnover in the sample is 0.809, with a median of 0.674. This indicates that the median SME generates approximately 0.67 units of sales per unit of total assets. Intangible asset intensity has a mean of 0.155 and a median of 0.053, suggesting that intangible assets are present in the sample but unevenly distributed across firms. The median leverage ratio is 0.095, while the median cash ratio is 0.125.
+
+```{python}
+#| label: tbl-summary
+#| tbl-cap: "Summary statistics."
+summary
+```
+
+```{python}
+#| label: tbl-regression
+#| tbl-cap: "Regression results. * p<0.10, ** p<0.05, *** p<0.01."
+results.fillna("")
+```
+
+![Main relationship between intangible asset intensity and operational efficiency.](output/figures/main_relationship.png){width=90%}
+
+Model (1) reports the pooled OLS estimate, Model (2) adds firm and year fixed effects, and Model (3) adds the interaction term between intangible asset intensity and firm size. In Model (1), intangible asset intensity is negatively and significantly associated with asset turnover. The coefficient is -0.275 and statistically significant at the 1% level. This means that firms with higher intangible asset intensity tend to show lower asset turnover in the pooled model.
+
+Model (2), the two-way fixed effects specification, shows a similar result. The coefficient on intangible asset intensity is -0.287 and statistically significant at the 5% level. This means that, within the same firm over time, higher intangible asset intensity is associated with lower operational efficiency as measured by asset turnover. This finding does not support H1, because H1 expected a positive relationship between intangible asset intensity and operational efficiency.
+
+> **H1:** Not supported. Intangible asset intensity is significantly associated with operational efficiency, but the sign is negative rather than positive.
+
+The difference between the OLS coefficient in Model (1) and the fixed effects coefficient in Model (2) is relatively small. The coefficient changes from -0.275 to -0.287, meaning that the fixed effects estimate is approximately 4.4% more negative than the OLS estimate. This suggests that controlling for firm and year fixed effects changes the magnitude of the main coefficient only slightly, although the fixed effects model is theoretically preferable because it accounts for time-invariant firm differences. The R² increases from 0.062 in the OLS model to 0.069 in the fixed effects model.
+
+Model (3) tests whether firm size moderates the relationship between intangible asset intensity and operational efficiency. The interaction coefficient between intangible asset intensity and firm size is -0.001 and not statistically significant. This means that the analysis does not provide evidence that the relationship between intangible asset intensity and asset turnover becomes stronger for larger SMEs. H2 is therefore not supported.
+
+> **H2:** Not supported. The interaction between intangible asset intensity and firm size is not statistically significant.
+
+The control variables show additional patterns. Firm size is negatively and significantly associated with asset turnover across all models, suggesting that larger SMEs in the sample tend to generate lower sales relative to their asset base. Leverage is also negatively and significantly related to asset turnover, while the cash ratio shows a negative and significant association. CAPX intensity is not statistically significant in the fixed effects models.
+
+# Discussion and Conclusion
+
+The results do not support the theoretical expectation that intangible asset intensity improves operational efficiency among European SMEs. Instead, the main fixed effects model shows a negative and statistically significant relationship between intangible asset intensity and asset turnover. One interpretation is that intangible assets may contribute more to long-term strategic positioning than to short-term operational efficiency. Intangible assets such as knowledge, innovation-related resources, or organizational capabilities may require time and complementary resources before they translate into higher sales relative to assets. This finding therefore qualifies the resource-based and knowledge-based argument: intangible assets may be valuable, but their value is not automatically reflected in higher current asset turnover [@barneyFirmResourcesSustained1991; @grantKnowledgebasedTheoryFirm1996].
+
+The analysis also does not support the expectation that firm size strengthens the relationship between intangible asset intensity and operational efficiency. The interaction between intangible asset intensity and firm size is not statistically significant. This suggests that larger SMEs in this sample are not necessarily better able to convert intangible asset intensity into higher asset turnover. A possible explanation is that larger SMEs may also have more complex organizational structures and broader asset bases, which can reduce asset turnover even when intangible assets are present.
+
+The research question asked how intangible asset intensity affects operational efficiency among European SMEs and whether firm size moderates this relationship. Based on the results, intangible asset intensity is negatively associated with operational efficiency in the two-way fixed effects model, while firm size does not significantly moderate this relationship. Therefore, the analysis provides no evidence that intangible asset intensity improves operational efficiency as measured by asset turnover.
+
+This research note has two important limitations. First, intangible asset intensity is measured using reported intangible assets from accounting data. This may understate important intangible resources such as internally developed knowledge, routines, or organizational capabilities that are not fully recognized on the balance sheet. Second, operational efficiency is measured only through asset turnover. While this is a useful ratio for assessing sales generated per unit of assets, it does not capture profitability, innovation output, or long-term value creation.
+
+Future research could extend this analysis by comparing different performance outcomes, such as profitability, productivity, or growth. It could also examine whether specific types of intangible assets have different effects on SME performance. This would help clarify whether the negative association found here reflects measurement limitations, timing effects, or a genuine trade-off between intangible asset intensity and short-term operational efficiency.
+
+# References
+
+::: {#refs}
